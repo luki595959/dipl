@@ -1,0 +1,106 @@
+---
+version: "3.8"
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    environment:
+      http.host: 0.0.0.0
+      transport.host: 127.0.0.1
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: "-Xmx1024m -Xms1024m"
+      ELASTIC_USERNAME: "elastic"
+      ELASTIC_PASSWORD: "datalab"
+      xpack.security.enabled: "true"  
+      #xpack.security.transport.ssl.enabled: "true"
+      #xpack.security.transport.ssl.verification_mode: certificate 
+      #xpack.ssl.certificate_authorities: / ..... /*.crt
+      #xpack.ssl.certificate: / ..... /*.crt
+      #xpack.ssl.key: / ..... /*.key
+    volumes:
+      - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/elasticsearch.yml
+      - esdata:/usr/share/elasticsearch/data
+    ports: ['9200:9200']
+    networks: ['stack']
+    labels:
+      co.elastic.logs/module: elasticsearch
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==datalab 
+        
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.12.0
+    environment:
+      ELASTICSEARCH_USERNAME: "elastic"
+      ELASTICSEARCH_PASSWORD: "datalab"
+    volumes:
+      - ./config/kibana/kibana.yml:/usr/share/kibana/kibana.yml
+    ports: ['5601:5601']
+    networks: ['stack']
+    labels:
+      co.elastic.logs/module: kibana
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==datalab
+
+  filebeat:
+    user: root
+    image: docker.elastic.co/beats/filebeat:7.12.0
+    volumes:
+      - ./config/beats/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - fbdata:/usr/share/filebeat/data/
+    networks: ['stack']
+    command: filebeat -e -E output.elasticsearch.username=elastic -E output.elasticsearch.password=datalab -strict.perms=false  #
+    deploy: 
+      mode: global
+
+  metricbeat:
+    user: root
+    image: docker.elastic.co/beats/metricbeat:7.12.0
+    volumes:
+      - ./config/beats/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+      - ./config/beats/metricbeat/modules.d/:/usr/share/metricbeat/modules.d/
+      - /proc:/hostfs/proc:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/hostfs:ro
+    networks: ['stack']  
+    command: metricbeat -e -system.hostfs=/hostfs -E output.elasticsearch.username=elastic -E output.elasticsearch.password=datalab -strict.perms=false
+    deploy: 
+      mode: global  
+
+  retention:
+    image: luki595959/retention:1.2.1
+    environment:
+      USERNAME: "elastic"
+      PASSWORD: "datalab"
+      DUMP_TIME: "01:30" #utc time
+    tty: true
+    volumes:
+      - "/mnt/cifs/ ..... :/usr/src/ret/data" # doplnit cestu 
+    networks: ['stack']
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==datalab
+
+volumes:
+  #Es datas
+  esdata:
+    driver: local
+  #Filebeat data - registry file
+  fbdata:
+    driver: local
+
+networks: 
+  stack:
+    driver: overlay
