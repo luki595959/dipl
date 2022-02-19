@@ -1,4 +1,8 @@
-# IMPORTANT
-Stack obsahuje 2 subory ```docker-stack.yml``` a ```docker-stack-x.yml``` 
-1. ```docker-stack-x.yml``` - obsahuje xpack pre vytvorenie usera na elasticsearch a kibana
-2. ```docker-stack.yml``` - je bez xpacku
+# Info
+ - ```docker-stack.yml``` -> linux verzia
+ - ```docker-compose.yml``` -> windows verzia
+
+# Spustenie
+ - ```dokcer stack deploy -c docker-stack.yml datalab```
+ - ```dokcer stack deploy -c docker-compose.yml datalab```
+
