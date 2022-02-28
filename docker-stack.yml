@@ -28,7 +28,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.hostname==datalab 
+          - node.hostname==infra 
         
   kibana:
     image: docker.elastic.co/kibana/kibana:7.12.0
@@ -46,7 +46,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.hostname==datalab
+          - node.hostname==infra
 
   filebeat:
     user: root
@@ -84,14 +84,14 @@ services:
       DUMP_TIME: "01:30" #utc time
     tty: true
     volumes:
-      - "/mnt/cifs/ ..... :/usr/src/ret/data" # doplnit cestu 
+      - "/mnt/cifs/ ..... :/usr/src/ret/data" #doplnit cestu 
     networks: ['stack']
     deploy:
       mode: replicated
       replicas: 1
       placement:
         constraints:
-          - node.hostname==datalab
+          - node.hostname==infra
 
 volumes:
   #Es datas
