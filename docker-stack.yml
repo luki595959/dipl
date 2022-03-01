@@ -90,7 +90,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.hostname==lukas-Lenovo-ideapad-700-15ISK
+          - node.hostname==infra
 
 configs:
   metricbeat-config:
