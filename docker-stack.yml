@@ -21,14 +21,12 @@ services:
       - esdata:/usr/share/elasticsearch/data
     ports: ['9200:9200']
     networks: ['stack']
-    labels:
-      co.elastic.logs/module: elasticsearch
     deploy:
       mode: replicated
       replicas: 1
       placement:
         constraints:
-          - node.hostname==infra 
+          - node.hostname==infra
         
   kibana:
     image: docker.elastic.co/kibana/kibana:7.12.0
@@ -39,8 +37,6 @@ services:
       - ./config/kibana/kibana.yml:/usr/share/kibana/kibana.yml
     ports: ['5601:5601']
     networks: ['stack']
-    labels:
-      co.elastic.logs/module: kibana
     deploy:
       mode: replicated
       replicas: 1
@@ -51,8 +47,10 @@ services:
   filebeat:
     user: root
     image: docker.elastic.co/beats/filebeat:7.12.0
+    configs:
+      - source: filebeat-config
+        target: /usr/share/filebeat/filebeat.yml
     volumes:
-      - ./config/beats/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - fbdata:/usr/share/filebeat/data/
@@ -64,9 +62,10 @@ services:
   metricbeat:
     user: root
     image: docker.elastic.co/beats/metricbeat:7.12.0
+    configs:
+      - source: metricbeat-config
+        target: /usr/share/metricbeat/metricbeat.yml
     volumes:
-      - ./config/beats/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
-      - ./config/beats/metricbeat/modules.d/:/usr/share/metricbeat/modules.d/
       - /proc:/hostfs/proc:ro
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
       - /var/run/docker.sock:/var/run/docker.sock
@@ -84,15 +83,21 @@ services:
       DUMP_TIME: "01:30" #utc time
     tty: true
     volumes:
-      - "/mnt/cifs/ ..... :/usr/src/ret/data" #doplnit cestu 
+      - "/mnt/ ...... :/usr/src/ret/data" #doplnit cestu 
     networks: ['stack']
     deploy:
       mode: replicated
       replicas: 1
       placement:
         constraints:
-          - node.hostname==infra
+          - node.hostname==lukas-Lenovo-ideapad-700-15ISK
 
+configs:
+  metricbeat-config:
+    file: ./config/beats/metricbeat/metricbeat.yml
+  filebeat-config:
+    file: ./config/beats/filebeat/filebeat.yml
+        
 volumes:
   #Es datas
   esdata:

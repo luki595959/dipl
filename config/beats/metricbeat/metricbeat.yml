@@ -1,0 +1,50 @@
+#metricbeat.config.modules:
+#  path: ${path.config}/modules.d/*.yml
+#  reload.period: 10s
+#  reload.enabled: true
+
+metricbeat.modules:
+  - module: docker
+    metricsets:
+      - container
+      - cpu
+      - diskio
+      - healthcheck
+      - info
+      - memory
+      - network
+    hosts: ['unix:///var/run/docker.sock']
+    period: 10s
+    enabled: true
+    
+  - module: system
+    metricsets:
+      - core
+      - cpu
+      - load
+      - diskio
+      - filesystem
+      - fsstat
+      - memory
+      - network
+      - process
+      - socket
+    enabled: true
+    period: 10s
+    processes: ['.*']
+    cpu_ticks: true
+    process.cgroups.enabled: true
+
+
+
+setup.dashboards:
+  enabled: true
+
+setup.kibana:
+  host: "kibana:5601"
+  protocol: "http"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+logging.to_files: false
+
